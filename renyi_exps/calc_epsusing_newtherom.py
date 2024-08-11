@@ -83,14 +83,14 @@ def getVectoriserAndModel(inpDir):
     return clf, vectorizer
 
 if __name__ == '__main__':
-    main_data_dir = "/Users/vaibhavgusain/ML/KL_DPSGD/emebeddings_sent"
+    main_data_dir = "data/emebeddings_sent"
     alpha = 2
     map_vector_dirname = {"smart_amazon_utility_redaction_embs_not_norm": "smart_amazon_utility_redaction",
                           "smart_masking_redit_suicide_sent_embs": "smart_masking_redit_suicide",
                           "smartMaskingPoliticalDataset_sent_embs": "smartMaskingPoliticalDataset",
                           "smartMaskingValidationMedalSepTrain_diff_length_sent_embs": "smartMaskingValidationMedalSepTrain_diff_length"}
 
-    json_dir = "/Users/vaibhavgusain/ML/KL_DPSGD/divergence_alpha_vals"
+    json_dir = "data/divergence_alpha_vals"
     delta = 0.00008
     for dirName in map_vector_dirname:
         dataToPlot = {}
