@@ -113,7 +113,7 @@ if __name__ == '__main__':
         if "amazon" in dirName:
             clf, vectoriser = getVectoriserAndModel("{}".format(model_dir))
         else:
-            clf, vectoriser = getVectoriserAndModel("/Users/vaibhavgusain/ML/bartExps/{}".format(model_dir))
+            clf, vectoriser = getVectoriserAndModel("data/sentences/{}".format(model_dir))
         # for maskPerc in [90]:
         print(dirName)
         for key in mask_data:

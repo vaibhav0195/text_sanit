@@ -11,6 +11,7 @@ from tqdm import tqdm
 from model_dp import RNNModel
 from data_Dp import DatasetCSV_redcated,DatasetCSV
 import numpy as np
+import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser(description='PyTorch Wikitext-2 RNN/LSTM/GRU/Transformer Language Model')
 parser.add_argument('--data', type=str, default='/home/vaibhav/ML/bartexps/smart_amazon_utility_redaction',
@@ -337,6 +338,67 @@ def main():
     print(redact_dict)
     print("DPSGD")
     print(dp_sgd)
+    plot_fig(redact_dict,dp_sgd,args.data.split("/")[-1])
+
+def plot_fig(redaction_dict,dp_sgd_dict,dataset_name):
+    # print(key)
+    if "amazon" not in dataset_name:
+        loaded_divergence_value = np.load("data/npy_eps_data/{}_sent_embs.npy".format(dataset_name),allow_pickle=True)
+
+    else:
+        loaded_divergence_value = np.load("data/npy_eps_data/smart_amazon_utility_redaction_embs_not_norm.npy",
+                                          allow_pickle=True)
+    data_to_plot_redaction = []
+    data_to_plot_dp_sgd = []
+    original_data = []
+    for data_row in loaded_divergence_value:
+        mask_perc = data_row[0]
+        mean_divergence = data_row[1]
+        loss_value_for_mask_perc = redaction_dict[mask_perc][0]
+        loss_std = redaction_dict[mask_perc][1]
+        # eps_updated = convert_divergence_to_diff_priv(mean_divergence, delta=0.00008, alpha=2)
+        data_to_plot_redaction.append([mean_divergence,loss_value_for_mask_perc,loss_std])
+    data_to_plot_redaction.sort(key=lambda x: x[0])
+    for eps in dp_sgd_dict:
+        data_to_plot_dp_sgd.append([eps,dp_sgd_dict[eps][0],dp_sgd_dict[eps][1]])
+    data_to_plot_dp_sgd = np.asarray(data_to_plot_dp_sgd)
+    data_to_plot_redaction = np.asarray(data_to_plot_redaction)
+    original_data = np.asarray(original_data)
+
+    plt.rcParams.update({'font.size': 12})
+    fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+    fig.text(0.005, 0.5, r"log(ppl)", va="center", rotation="vertical")
+    fig.subplots_adjust(hspace=0.01)  # adjust space between axes
+    print(data_to_plot_dp_sgd)
+    # plot the same data on both axes
+    ax1.errorbar(data_to_plot_dp_sgd[:,0],data_to_plot_dp_sgd[:,1],data_to_plot_dp_sgd[:,2],label="DP-SGD finetuned",color="blue")
+    ax2.errorbar(data_to_plot_redaction[:,0],data_to_plot_redaction[:,1],data_to_plot_redaction[:,2],label="Redaction finetuned",color="red")
+    ax2.errorbar(original_data[:,0],original_data[:,1],original_data[:,2],label="Original-loss finetuned",color="green")
+    # hide the spines between ax and ax2
+    ax1.spines.bottom.set_visible(False)
+    ax2.spines.top.set_visible(False)
+    ax1.xaxis.tick_top()
+    ax1.tick_params(labeltop=False)  # don't put tick labels at the top
+    ax2.xaxis.tick_bottom()
+    d = .5  # proportion of vertical to horizontal extent of the slanted line
+    kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
+                  linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+    ax1.errorbar(data_to_plot_dp_sgd[1:,0],data_to_plot_dp_sgd[1:,1], data_to_plot_dp_sgd[1:,2],transform=ax1.transAxes, **kwargs)
+    ax2.errorbar(data_to_plot_redaction[:,0],data_to_plot_redaction[:,1],data_to_plot_redaction[:,2], transform=ax2.transAxes, **kwargs)
+    ax2.errorbar(original_data[:,0],original_data[:,1], original_data[:,2],transform=ax2.transAxes, **kwargs)
+    # ax1.set_title("EPS V log(PPL) for {} data (seed = 1111)".format(key))
+    # ax1.set_ylabel("log(ppl)")
+    # ax2.set_ylabel("log(ppl)")
+    ax2.set_xlabel("EPS (Differential Privacy)")
+    lines, labels = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines + lines2, labels + labels2, bbox_to_anchor=(0.5, 1.25), loc='upper left')
+    # lines = [p1, p2,p3]
+
+    # ax1.legend(lines, [l.get_label() for l in lines])
+    plt.tight_layout()
+    # plt.legend()
+    plt.show()
 
 
 def collate_fn(data):

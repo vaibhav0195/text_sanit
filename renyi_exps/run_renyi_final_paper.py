@@ -82,7 +82,7 @@ if __name__ == '__main__':
     # dirNames = ["smart_amazon_utility_redaction_embs_not_norm"]
     # dirNames = ["randomMaskingEqSmartMedal_embs_not_norm"]
     # dirNames = ["smartMaskingValidationMedalsame_length_embs_not_norm"]
-    main_data_dir = "/Users/vaibhavgusain/ML/KL_DPSGD/emebeddings_sent"
+    main_data_dir = "/data/emebeddings_sent"
     alpha = 2
     map_vector_dirname = {"smart_amazon_utility_redaction_embs_not_norm":"smart_amazon_utility_redaction",
                           "smart_masking_redit_suicide_sent_embs":"smart_masking_redit_suicide",
@@ -96,7 +96,7 @@ if __name__ == '__main__':
         if "amazon" in dirName:
             clf, vectoriser = getVectoriserAndModel("{}".format(model_dir))
         else:
-            clf, vectoriser = getVectoriserAndModel("/Users/vaibhavgusain/ML/bartExps/{}".format(model_dir))
+            clf, vectoriser = getVectoriserAndModel("data/sentences/{}".format(model_dir))
         # for maskPerc in [90]:
         print(dirName)
         for maskPerc in [0,10,20,30,40,50,60,70,80,90,100]:
@@ -168,10 +168,10 @@ if __name__ == '__main__':
         ax2.legend(lines + lines2, labels + labels2, loc=0)
         # plt.legend()
         plt.tight_layout()
-        # plt.show()
+        plt.show()
         # with open('test.npy', 'wb') as f:
-        np.save("renyi_plots/{}.npy".format(model_dir), dataToPlot_new)
-        plt.savefig("renyi_plots/{}_final_renyi_plot.eps".format(dirName), format="eps", bbox_inches='tight')
+        # np.save("renyi_plots/{}.npy".format(model_dir), dataToPlot_new)
+        # plt.savefig("renyi_plots/{}_final_renyi_plot.eps".format(dirName), format="eps", bbox_inches='tight')
 
     pass
 

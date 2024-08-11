@@ -12,8 +12,10 @@ import torch.onnx
 import numpy as np
 import data
 import model
+import matplotlib.pyplot as plt
+
 parser = argparse.ArgumentParser(description='PyTorch Wikitext-2 RNN/LSTM/GRU/Transformer Language Model')
-parser.add_argument('--data', type=str, default='/home/vaibhav/ML/bartexps/smart_amazon_utility_redaction',
+parser.add_argument('--data', type=str, default='data/sentences/smartMaskingValidationMedalSepTrain_diff_length',
                     help='location of the data corpus')
 parser.add_argument('--model', type=str, default='LSTM',
                     help='type of network (RNN_TANH, RNN_RELU, LSTM, GRU, Transformer)')
@@ -378,7 +380,54 @@ for maskPerc in range(0,91,10):
         eps_mins.append([fp,fn,tp,tn,slicing_tn])
     json_data[maskPerc] = eps_mins
 
-import json
+# for dataset_name in dataset_lists:
+dataset_name = args.data.split("/")[-1]
+if "amazon" not in dataset_name:
+    loaded_divergence_value = np.load("data/npy_eps_data/{}_sent_embs.npy".format(dataset_name),
+                                      allow_pickle=True)
+else:
+    loaded_divergence_value = np.load("data/npy_eps_data/smart_amazon_utility_redaction_embs_not_norm.npy", allow_pickle = True)
+tn_tp_values = json_data
+data_plot = []
+mask_div_map = {}
+for data_row in loaded_divergence_value:
+    mask_perc = data_row[0]
+    mean_divergence = data_row[1]
+    std_divergence = data_row[2]
+    mask_div_map[mask_perc] = (mean_divergence,std_divergence)
+map= {}
+for redact_key in range(0, 101, 10):
+    fp_r = [];
+    tp_r = []
+    mean_divergence_redact = mask_div_map[redact_key]
+    # eps_div = convert_divergence_to_diff_priv(mean_divergence_redact[0], delta=0.00008, alpha=2)
+    try:
+        for seed in range(10):
+            fp, fn, tp, tn,_ = tn_tp_values[str(redact_key)][seed]
+            tot = (fp + fn + tp + tn)
+            # tp_r.append(tp / tot)
+            fp_r.append(tn / (tn+fp))
+        data_plot.append([float(redact_key), mean_divergence_redact[0], mean_divergence_redact[1], np.mean(fp_r), np.std(fp_r)])
+        map[float(redact_key)] = np.mean(fp_r)
+    except Exception as e:
+        # print(e)
+        data_plot.append([float(redact_key), 0.0, 0, map[90], 0])
 
-with open('json_data/{}.json'.format(taskName), 'w', encoding='utf-8') as f:
-    json.dump(json_data, f, ensure_ascii=False, indent=4)
+plt.rcParams.update({'font.size': 15})
+fig, ax = plt.subplots()
+ax2 = ax.twinx()
+data_to_plot = np.asarray(data_plot)
+# ax.errorbar(data_to_plot[:, 0], data_to_plot[:, 1], data_to_plot[:, 2],label="Procrustes Distance", color='b')
+# ax.errorbar(data_to_plot[:, 0], data_to_plot[:, 1], data_to_plot[:, 2], label="tp", color='b')
+ax.errorbar(data_to_plot[:, 0], data_to_plot[:, 3], data_to_plot[:, 4], label="tn", color='r')
+ax2.errorbar(data_to_plot[:, 0], data_to_plot[:, 1], data_to_plot[:, 2],
+             label="eps", color='b')
+ax.set_ylabel('TN %')
+ax.set_xlabel('WordsMasked %')
+ax2.set_ylabel('EPS')
+lines, labels = ax.get_legend_handles_labels()
+lines2, labels2 = ax2.get_legend_handles_labels()
+ax2.legend(lines + lines2, labels + labels2, loc=0)
+# plt.legend()
+plt.tight_layout()
+plt.show()

@@ -143,7 +143,7 @@ if __name__ == '__main__':
             os.makedirs(embs_save_dir,exist_ok=True)
             print("********{}_{}*********".format(dirName, maskPerc))
             numWordsToMask = float(maskPerc)
-            npyDataFilePath = "/Users/vaibhavgusain/ML/bartExps/"+dirName + "/{}/sentOut.npy".format(maskPerc)
+            npyDataFilePath = "data/sentences/"+dirName + "/{}/sentOut.npy".format(maskPerc)
             p_text,q_text, p_pred, q_pred = getPqFromNpyData(npyDataFilePath)
             p_feat, q_feat = get_sent_features(p_text, q_text,sentenceTransformerModel)
             np.save("{}/p_sent.npy".format(embs_save_dir), p_text)
