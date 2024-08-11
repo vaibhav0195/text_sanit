@@ -24,4 +24,8 @@ To run membership inference please run
     data/smart_amazon_utility_redaction
     data/smartMaskingPoliticalDataset
     data/smart_masking_redit_suicide
+
+To run the similarity metric results
+    please refer to the repository https://github.com/js-d/sim_metric on how to calculate similarity metric between the weights
+    to get the results in the paper please run "sens_new/sim_metric/dists/plot_json_fins.py"
     
